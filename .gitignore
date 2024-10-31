@@ -14,5 +14,5 @@
 !./plot_learned_graph.py
 !./compare_sanity_check.py
 !./main.py
-!./submit.py
-!./trial.py
+!./train/
+!./plot/
