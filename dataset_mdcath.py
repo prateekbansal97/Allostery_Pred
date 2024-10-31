@@ -41,4 +41,4 @@ parm_traj_dict = parm_traj_manager.load_parm_traj_dict(parm_traj_output_path)
 
 dataset_generator = DatasetGenerator(parm_traj_dict, mdcath=True)
 
-dataset_generator.fasta_mdcath()
+dataset_generator.process_all_systems()
