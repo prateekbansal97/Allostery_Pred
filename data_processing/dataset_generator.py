@@ -14,7 +14,30 @@ from torch.utils.data import DataLoader
 
 
 class DatasetGenerator:
+    """
+    A class for generating, processing, and cleaning datasets for training machine learning models using molecular dynamics data.
+
+    Attributes:
+        parm_traj_dict (dict): A dictionary containing parameters and trajectories.
+        maxlen (int): The maximum length of the trajectory data.
+        n_dims (int): The number of dimensions for the feature set (e.g., coordinates and velocities).
+        mdcath (bool): A flag indicating whether to use the mdcath dataset.
+        timestep (int): The number of frames per timestep.
+        windows (dict): A dictionary representing window ranges for processing data.
+    """
+
     def __init__(self, parm_traj_dict,  mdcath=False, timestep=64, maxlen=8000, n_dims=6):
+        """
+        Initializes the DatasetGenerator with provided parameters.
+
+        Args:
+            parm_traj_dict (dict): Dictionary with parameters and trajectories for dataset generation.
+            mdcath (bool, optional): Flag indicating if the mdcath dataset should be used. Default is False.
+            timestep (int, optional): Number of frames per timestep. Default is 64.
+            maxlen (int, optional): Maximum length of the trajectory data. Default is 8000.
+            n_dims (int, optional): Number of dimensions for the features. Default is 6.
+        """
+        
         self.parm_traj_dict = parm_traj_dict
         self.maxlen = maxlen
         self.n_dims = n_dims
@@ -28,6 +51,16 @@ class DatasetGenerator:
 
 
     def generate_train_valid_test(self, input_files, parm, sysname):
+        """
+        Generates training, validation, and test datasets from trajectory files.
+
+        Args:
+            input_files (list): List of input trajectory files.
+            parm (str): The parameter file for the system.
+            sysname (str): The name of the system being processed.
+        """
+
+        
         for trajno, traj in enumerate(input_files):
             trajname = traj.split('/')[-1].split('.')[0]
             pdb = md.load(traj, top=parm)
@@ -57,6 +90,13 @@ class DatasetGenerator:
 
 
     def generate_train_valid_test_mdcath(self, domain_id):
+        """
+        Generates training, validation, and test datasets for the mdcath dataset.
+
+        Args:
+            domain_id (str): The domain ID from the mdcath dataset.
+        """
+        
         data_dir = './data/temp/data'
         temperature = '320'
         f = h5.File(opj(data_dir, f"mdcath_dataset_{domain_id}.h5"), 'r')
@@ -91,6 +131,14 @@ class DatasetGenerator:
                 pickle.dump(features, open(output_path, 'wb'))
 
     def generate_combined_train_valid_test(self, sysname, mode):
+        """
+        Combines the generated training, validation, and test datasets into a single file.
+
+        Args:
+            sysname (str): The name of the system.
+            mode (str): The mode of the data being processed (e.g., "train", "valid", "test").
+        """
+        
         output_folder = f'/home/prateek/storage/ML_Allostery/NRI-MD/data/processed_data'
         npys = natsorted(glob.glob(f'{output_folder}/*{sysname}*{mode}*'))
         combined = []
@@ -106,6 +154,17 @@ class DatasetGenerator:
 
 
     def clean_dataset(self, sysname, mode):
+        """
+        Cleans the dataset by ensuring all trajectories are of equal length and removes inconsistencies.
+
+        Args:
+            sysname (str): The system name.
+            mode (str): The mode (train, valid, test) for cleaning.
+
+        Returns:
+            tuple: Cleaned feature array and edge array.
+        """
+        
         output_folder = f'./data/processed_data'
         npy = natsorted(glob.glob(f'{output_folder}/*{sysname}*{mode}*combined*'))
         
@@ -138,6 +197,17 @@ class DatasetGenerator:
         return features, edges
 
     def normalize_dataset(self, sysname, mode):
+        """
+        Normalizes the dataset to a standard range of values between -1 and 1.
+
+        Args:
+            sysname (str): The system name.
+            mode (str): The mode (train, valid, test) for normalization.
+
+        Returns:
+            tuple: Normalized features and edges.
+        """
+        
         features, edges = self.clean_dataset(sysname, mode)
 
         min_vals = features.min(axis=3, keepdims=True)  # Shape: [40, 2, 1, 785]
@@ -161,6 +231,17 @@ class DatasetGenerator:
 
 
     def generate_torch_dataloaders(self, sysname, mode, batch_size):
+        """
+        Generates PyTorch dataloaders for the training, validation, and test datasets.
+
+        Args:
+            sysname (str): The system name.
+            mode (str): The mode (train, valid, test) for dataset.
+            batch_size (int): The batch size for the dataloaders.
+
+        Returns:
+            DataLoader: A DataLoader object for PyTorch.
+        """
         
         features, edges = self.normalize_dataset(sysname, mode)
         
@@ -173,6 +254,12 @@ class DatasetGenerator:
         return data_loader
 
     def process_all_systems(self):
+        """
+        Processes all systems in the parm_traj_dict or the mdcath dataset, including generating datasets and cleaning them.
+
+        This method processes all the data and stores it in a specified output directory.
+        """
+        
         if self.mdcath:
             domainfilename = './data/mdCATH_domains.txt'
             
@@ -232,6 +319,13 @@ class DatasetGenerator:
                         self.generate_torch_dataloaders(sysname, mode)
                 #self.torch_tensors_and_dataloaders(sysname, mode)
     def fasta_mdcath(self):
+        """
+        Downloads the FASTA sequences for the mdcath dataset from the web and saves them to a file.
+
+        This method retrieves the sequence information for all domains listed in the 'mdCATH_domains.txt' file, and stores
+        them in a FASTA format file.
+        """
+        
         import requests
         from bs4 import BeautifulSoup
         import pickle
