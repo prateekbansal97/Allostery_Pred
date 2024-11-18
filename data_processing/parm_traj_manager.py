@@ -36,4 +36,3 @@ class ParmTrajManager:
     def load_parm_traj_dict(self, filepath):
         with open(filepath, 'rb') as file:
             return pickle.load(file)
-
