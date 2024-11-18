@@ -1,3 +1,28 @@
+"""
+Authored by Prateek Bansal, Nov 2, 2024
+University of Illinois Urbana Champaign
+pdb3@illinois.edu
+
+Script for training a Neural Relational Inference (NRI) model on molecular dynamics simulations.
+
+This script performs the following:
+1. Parses command-line arguments for system name and batch size.
+2. Initializes hyperparameters and data processing utilities.
+3. Sets up the training and validation data loaders.
+4. Initializes the encoder and decoder models for NRI.
+5. Loads model checkpoints if available and resumes training.
+6. Executes the training loop with logging and saves the training results.
+
+Dependencies:
+- PyTorch for deep learning.
+- ParmTrajManager, DatasetGenerator, and utility functions for data processing.
+- train module for training and validation of the models.
+
+Command-line Arguments:
+- `--sysname`: Name of the system for NRI training.
+- `--batch-size`: Batch size for training and validation.
+"""
+
 import pickle
 from data_processing.parm_traj_manager import ParmTrajManager
 from data_processing.dataset_generator import DatasetGenerator
