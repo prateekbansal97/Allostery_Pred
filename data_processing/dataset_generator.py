@@ -270,4 +270,3 @@ class DatasetGenerator:
                         fasta_file.write(f'''> {domain_id}\n{sequences[0]}\n''')
                 else:
                     print("Failed to retrieve content.")
-    
