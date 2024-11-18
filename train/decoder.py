@@ -10,7 +10,25 @@ _EPS = 1e-10
 
 
 class RNNDecoder(nn.Module):
-    """Recurrent decoder module."""
+    """
+    A recurrent neural network decoder for dynamic graph modeling.
+
+    This module predicts the evolution of a graph-based system using recurrent layers with learned interactions. 
+    It employs GRU-style updates to model node-level interactions and integrates edge-type-specific message-passing.
+
+    Parameters
+    ----------
+    n_in_node : int
+        Input feature size per node.
+    edge_types : int
+        Number of edge types in the graph.
+    n_hid : int
+        Hidden layer size.
+    do_prob : float, optional
+        Dropout probability (default is 0.0).
+    skip_first : bool, optional
+        Whether to skip the first edge type during message-passing (default is False).
+    """
 
     def __init__(self, n_in_node, edge_types, n_hid,
                  do_prob=0., skip_first=False):
@@ -40,7 +58,30 @@ class RNNDecoder(nn.Module):
 
     def single_step_forward(self, inputs, rel_rec, rel_send,
                             rel_type, hidden):
+        """
+        Perform a single forward step of prediction.
 
+        Parameters
+        ----------
+        inputs : torch.Tensor
+            Input node features of shape [batch_size, num_nodes, n_in_node].
+        rel_rec : torch.Tensor
+            Receiver relation matrix of shape [num_edges, num_nodes].
+        rel_send : torch.Tensor
+            Sender relation matrix of shape [num_edges, num_nodes].
+        rel_type : torch.Tensor
+            Edge type probabilities of shape [batch_size, num_edges, edge_types].
+        hidden : torch.Tensor
+            Hidden states of shape [batch_size, num_nodes, n_hid].
+
+        Returns
+        -------
+        pred : torch.Tensor
+            Predicted node features of shape [batch_size, num_nodes, n_in_node].
+        hidden : torch.Tensor
+            Updated hidden states of shape [batch_size, num_nodes, n_hid].
+        """
+                                
         # node2edge
         receivers = torch.matmul(rel_rec, hidden)
         senders = torch.matmul(rel_send, hidden)
@@ -89,7 +130,38 @@ class RNNDecoder(nn.Module):
     def forward(self, data, rel_type, rel_rec, rel_send, pred_steps=1,
                 burn_in=False, burn_in_steps=1, dynamic_graph=False,
                 encoder=None, temp=None):
+        """
+        Perform forward pass for multiple time steps.
 
+        Parameters
+        ----------
+        data : torch.Tensor
+            Input data of shape [batch_size, num_timesteps, num_nodes, n_in_node].
+        rel_type : torch.Tensor
+            Edge type probabilities of shape [batch_size, num_edges, edge_types].
+        rel_rec : torch.Tensor
+            Receiver relation matrix of shape [num_edges, num_nodes].
+        rel_send : torch.Tensor
+            Sender relation matrix of shape [num_edges, num_nodes].
+        pred_steps : int, optional
+            Prediction steps ahead (default is 1).
+        burn_in : bool, optional
+            Whether to use burn-in during training (default is False).
+        burn_in_steps : int, optional
+            Number of steps to use ground truth during burn-in (default is 1).
+        dynamic_graph : bool, optional
+            Whether to dynamically update the graph structure (default is False).
+        encoder : nn.Module, optional
+            Encoder model for dynamic graph updates.
+        temp : float, optional
+            Temperature for Gumbel-Softmax (default is None).
+
+        Returns
+        -------
+        torch.Tensor
+            Predicted trajectories of shape [batch_size, num_timesteps, num_nodes, n_in_node].
+        """
+                    
         inputs = data#.transpose(1, 2).contiguous()
 
         time_steps = inputs.size(1)
