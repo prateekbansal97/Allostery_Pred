@@ -52,7 +52,7 @@ parm_traj_output_path = './data/parm_traj_dict.pkl'
 parm_traj_manager = ParmTrajManager(group_dir, xtcs_list_file, strip_parms_list_file)
 parm_traj_dict = parm_traj_manager.load_parm_traj_dict(parm_traj_output_path)
 
-dataset_generator = DatasetGenerator(parm_traj_dict)
+dataset_generator = DatasetGenerator(parm_traj_dict, mdcath=True)
 
 #num_residues = n_res_dict(sysname) - 1 
 
