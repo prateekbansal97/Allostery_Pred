@@ -37,6 +37,26 @@ with open('./data/strip_parms_list', 'r') as g:
 
 stripparms = [j.strip() for j in stripparms]
 def gen_parm_traj_dict():
+    r"""
+    Generate a dictionary mapping molecular systems to their trajectories and parameter files.
+
+    This function reads molecular system groups from files and constructs a dictionary that maps each system
+    to its associated trajectories and parameter file. The dictionary is then saved to a pickle file for reuse.
+
+    Parameters
+    ----------
+    None
+
+    Saves
+    -----
+    './data/parm_traj_dict.pkl' : dict
+        A dictionary with system names as keys and trajectory-parameter mappings as values.
+
+    Examples
+    --------
+    >>> gen_parm_traj_dict()
+    Generates and saves the parameter-trajectory dictionary for later use.
+    """
     parm_traj_dict = {}
     for group in final_group_list:
         with open(group, 'r') as f:
@@ -51,6 +71,30 @@ def gen_parm_traj_dict():
 
 
 def generate_train_valid_test(input_files, parm, sysname):
+    r"""
+    Generate datasets for training, validation, and testing from molecular dynamics trajectories.
+
+    This function slices input molecular trajectories into fixed windows, extracts coordinates and velocities, 
+    and organizes them into structured datasets for machine learning purposes. Each dataset is saved as a pickle file.
+
+    Parameters
+    ----------
+    input_files : list of str
+        List of trajectory file paths to process.
+    parm : str
+        Path to the parameter file corresponding to the system.
+    sysname : str
+        Name of the molecular system.
+
+    Saves
+    -----
+    Pickle files for each mode ('train', 'valid', 'test'), containing windowed feature arrays.
+
+    Examples
+    --------
+    >>> generate_train_valid_test(['traj1.xtc'], 'parm.pdb', 'system1')
+    Processes 'traj1.xtc' into datasets for training, validation, and testing.
+    """
     for trajno, traj in enumerate(input_files):
         trajname = traj.split('/')[-1].split('.')[0]
         # print(f'Using {traj} as input...')
@@ -85,6 +129,26 @@ def generate_train_valid_test(input_files, parm, sysname):
 
 
 def gen_dataset_for_all_systems():
+    r"""
+    Generate training, validation, and testing datasets for all systems.
+
+    This function processes trajectories and parameter files for all molecular systems in the 
+    saved parameter-trajectory dictionary. It creates and saves windowed datasets for each system 
+    and each mode (train, valid, test).
+
+    Parameters
+    ----------
+    None
+
+    Saves
+    -----
+    Pickle files in './data/processed_data' for each system and mode.
+
+    Examples
+    --------
+    >>> gen_dataset_for_all_systems()
+    Processes all systems and generates datasets for training, validation, and testing.
+    """        
     parm_traj_dict = pickle.load(open('./data/parm_traj_dict.pkl','rb'))
     for system_name, trajparm in parm_traj_dict.items():
         trajs, parm = trajparm['trajs'], trajparm['parm']
